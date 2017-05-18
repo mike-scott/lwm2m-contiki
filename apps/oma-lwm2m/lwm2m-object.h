@@ -51,8 +51,47 @@
 #ifndef LWM2M_OBJECT_H_
 #define LWM2M_OBJECT_H_
 
+#if defined(__ZEPHYR__)
+
+#ifndef SYS_LOG_DOMAIN
+#define SYS_LOG_DOMAIN "fota/lib/oma-lwm2m"
+#define SYS_LOG_LEVEL CONFIG_SYS_LOG_FOTA_LEVEL
+#include <logging/sys_log.h>
+#endif
+
+/* stdint conversions */
+#include <zephyr/types.h>
+#include <stddef.h>
+#include <net/net_ip.h>
+#include <net/zoap.h>
+#include <misc/printk.h>
+#include <kernel.h>
+
+#define uint8_t  u8_t
+#define uint16_t u16_t
+#define uint32_t u32_t
+#define int8_t   s8_t
+#define int16_t  s16_t
+#define int32_t  s32_t
+
+typedef enum {
+  COAP_HANDLER_STATUS_CONTINUE,
+  COAP_HANDLER_STATUS_PROCESSED
+} coap_handler_status_t;
+
+/* type compatibility */
+typedef struct zoap_packet coap_packet_t;
+typedef struct zoap_observer coap_endpoint_t;
+
+#define ntimer_seconds() (k_uptime_get_32() / 1000)
+
+/* adjust console logging function */
+#define printf(...) printk(__VA_ARGS__)
+
+#else
 #include "er-coap.h"
 #include "er-coap-observe.h"
+#endif
 
 /* Operation permissions on the resources - read/write/execute */
 #define LWM2M_RESOURCE_READ    0x10000
@@ -202,11 +241,13 @@ lwm2m_context_t *ctx, const uint8_t *inbuf, size_t len, int *value);
 #define LWM2M_INSTANCE_FLAG_USED 1
 
 
+#ifdef CONTIKI
 static inline void
 lwm2m_notify_observers(char *path)
 {
   coap_notify_observers_sub(NULL, path);
 }
+#endif
 
 static inline size_t
 lwm2m_object_read_int(lwm2m_context_t *ctx, const uint8_t *inbuf, size_t len, int32_t *value)
@@ -345,10 +386,13 @@ lwm2m_object_write_boolean_ri(lwm2m_context_t *ctx, uint16_t id, int value)
 static inline int
 lwm2m_object_is_final_incoming(lwm2m_context_t *ctx)
 {
+#if defined(__ZEPHYR__)
+#else
   uint8_t more;
   if(coap_get_header_block1(ctx->request, NULL, &more, NULL, NULL)) {
     return !more;
   }
+#endif
   /* If we do not know this is final... it might not be... */
   return 0;
 }

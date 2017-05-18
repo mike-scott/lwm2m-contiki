@@ -97,7 +97,11 @@ typedef int
 #define LWM2M_OBJECT_INSTANCE_NONE 0xffff
 
 struct lwm2m_object_instance {
+#if defined(__ZEPHYR__)
+  sys_snode_t node;
+#else
   lwm2m_object_instance_t *next;
+#endif
   uint16_t object_id;
   uint16_t instance_id;
   /* an array of resource IDs for discovery, etc */

@@ -44,7 +44,11 @@
 #ifndef LWM2M_DEVICE_H_
 #define LWM2M_DEVICE_H_
 
+#if defined(__ZEPHYR__)
+#include "zephyr-conf.h"
+#else
 #include "contiki-conf.h"
+#endif
 
 #ifndef LWM2M_DEVICE_MODEL_NUMBER
 #ifdef BOARD_STRING

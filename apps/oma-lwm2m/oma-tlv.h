@@ -42,7 +42,11 @@
 #ifndef OAM_TLV_H_
 #define OAM_TLV_H_
 
+#if defined(__ZEPHYR__)
+#include "zephyr-conf.h"
+#else
 #include "contiki-conf.h"
+#endif
 #include <stdint.h>
 #include <stddef.h>
 
